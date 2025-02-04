@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kitap Yönetimi</title>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script src="/js/page.js"></script>
+    <link rel="stylesheet" href="/css/page.css" />
+
+    <!-- Bootstrap JS and Popper.js -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</head>
+
+<body ng-app="libraryApp" ng-controller="LibraryController">
+
+    <div class="container-fluid">
+        <div class="row">
+            <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
+                <div class="position-sticky">
+                    
+                    <ul class="nav flex-column">
+                        <li class="nav-item" ng-click="showSection('books')">
+                            <a class="nav-link active" href="#">Kitaplar</a>
+                        </li>
+                        <li class="nav-item" ng-if="userType === 'Teacher'" ng-click="showSection('bookOperations')">
+                        <a class="nav-link" href="#">Kitap İşlemleri</a>
+                        </li>
+                        <li class="nav-item" ng-click="showSection('myLibrary')">
+                            <a class="nav-link" href="#">Kitaplığım</a>
+                        </li>
+                       
+                    </ul>
+                </div>
+            </nav>
+
+<nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top">
+  <div class="container-fluid">
+
+    <a class="navbar-brand ms-7" href="#">KÜTÜPHANE</a>
+ 
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    
+    <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+      <ul class="navbar-nav">
+       
+        <li class="nav-item">
+          <a class="nav-link text-black me-7" href="#" id="logoutButton">Çıkış</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+            <!-- İçerik Bölgesi -->
+            <main class="col-md-9 ml-sm-auto col-lg-10 px-md-4">
+                  <!-- Kitaplar Sayfası -->
+    <div ng-show="section === 'books'">
+        <h1>Kitaplar</h1>
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <input type="text" class="form-control" ng-model="searchQuery" placeholder="Arama işlemi" />
+
+            <!-- Kitap Türü Filtreleme Dropdown'u -->
+            <select class="form-control ml-3" ng-model="selectedGenre" ng-options="genre for genre in genres">
+                <option value="">Tüm Türler</option>
+            </select>
+        </div>
+
+        <div class="row">
+            <div class="col-md-3" ng-repeat="book in books | filter:searchQuery | filter:{genre: selectedGenre || undefined}" ng-click="viewBook(book, 'books')">
+                <div class="card mb-4 shadow-sm">
+                    <img class="card-img-top" ng-src="{{book.image}}" alt="Kitap Resim" />
+                    <div class="card-body">
+                        <p class="card-text">{{book.title}}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+       
+
+                <!-- Kitap Detay Sayfası -->
+                <div ng-show="section === 'bookDetails'">
+                     <div class="d-flex justify-content-between align-items-center">
+        <h1>{{selectedBook.title}}</h1>
+        <button class="btn btn-secondary" ng-click="closeBookDetails()">X</button>
+    </div>
+                   
+                    <div class="row">
+                        <div class="col-md-4">
+                            <img class="img-fluid" ng-src="{{selectedBook.image}}" alt="Kitap Resim" />
+                        </div>
+                        <div class="col-md-8">
+                            <p><strong>Ad:</strong> {{selectedBook.title}}</p>
+                            <p><strong>Yazar:</strong> {{selectedBook.author}}</p>
+                            <p><strong>Yıl:</strong> {{selectedBook.year}}</p>
+                            <p><strong>Tür:</strong> {{selectedBook.genre}}</p>
+                            <p><strong>Özet:</strong></p>
+                            <p>{{selectedBook.summary}}</p>
+
+                            <button class="btn btn-primary" ng-if="!isInLibrary(selectedBook._id || selectedBook.id)" ng-click="addBookToLibrary(selectedBook._id || selectedBook.id)">
+                                Kitap Ekle
+                            </button>
+
+                            <button class="btn btn-danger" ng-if="isInLibrary(selectedBook._id || selectedBook.id)" ng-click="removeBookFromLibrary(selectedBook._id || selectedBook.id)">
+                                Kitaplıktan Çıkar
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <h2>Yorum Ekle</h2>
+                        <textarea class="form-control" ng-model="newComment"></textarea>
+                        <button class="btn btn-success mt-2" ng-click="addComment()">Ekle</button>
+                    </div>
+
+                    <div>
+                        <h3>Yorumlar</h3>
+                        <div ng-init="loadComment()">
+                            <div ng-repeat="comment in comments">
+                                <p>{{ comment.comment }} - {{ comment.createdAt | date:'medium' }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kitaplık Sayfası -->
+                <div ng-show="section === 'myLibrary'">
+                    <h1>Kitaplığım</h1>
+                    <div class="row">
+                        <div class="col-md-3" ng-repeat="book in myLibrary" ng-click="viewBook(book, 'myLibrary')">
+                            <div class="card mb-4 shadow-sm">
+                                <img class="card-img-top" ng-src="{{book.image}}" alt="Kitap Resim" />
+                                <div class="card-body">
+                                    <p class="card-text">{{book.title}}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kitap İşlemleri Sayfası -->
+                <div ng-show="section === 'bookOperations'">
+                    <h1>Kitap İşlemleri</h1>
+                    <div class="d-flex justify-content-between mb-4">
+                        <button class="btn btn-primary" ng-click="showSection('addBook')">Kitap Ekle</button>
+                        <button class="btn btn-danger" ng-click="showSection('deleteBook')">Kitap Sil</button>
+                        <button class="btn btn-secondary" ng-click="showSection('editBook')">Kitap Düzenle</button>
+                    </div>
+                </div>
+
+                <!-- Kitap Ekle Modal -->
+                <div ng-show="section === 'addBook'" class="modal fade show d-block">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Yeni Kitap Ekle</h5>
+                                <button type="button" class="close" ng-click="closeModal()" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <form ng-submit="addNewBook()">
+                                    <div class="form-group">
+                                        <label for="bookImage">Kitap Resmi:</label>
+                                        <input type="text" class="form-control" id="bookImage" ng-model="newBook.image" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="bookTitle">Kitap Adı:</label>
+                                        <input type="text" class="form-control" id="bookTitle" ng-model="newBook.title" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="bookAuthor">Yazar:</label>
+                                        <input type="text" class="form-control" id="bookAuthor" ng-model="newBook.author" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="bookYear">Yayım Yılı:</label>
+                                        <input type="number" class="form-control" id="bookYear" ng-model="newBook.year" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="bookGenre">Tür:</label>
+                                        <input type="text" class="form-control" id="bookGenre" ng-model="newBook.genre" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="bookSummary">Özet:</label>
+                                        <textarea class="form-control" id="bookSummary" ng-model="newBook.summary"></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Ekle</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kitap Sil Modal -->
+        <div ng-show="section === 'deleteBook'" class="modal fade show d-block">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Kitap Sil</h5>
+                        <button type="button" class="close" ng-click="closeModal()" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form ng-submit="deleteBook()">
+                            <div class="form-group">
+                                <label for="bookSelect">Silinecek Kitabı Seçin:</label>
+                                <select id="bookSelect" ng-model="selectedBookToDelete" ng-options="book as book.title for book in books">
+                                    <option value="">Bir kitap seçin...</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-danger">Sil</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+               <!-- Kitap Güncelle Modalı -->
+<div ng-show="section === 'editBook'" class="modal fade show d-block">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Kitap Güncelle</h5>
+                <button type="button" class="close" ng-click="closeModal()" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form ng-submit="updateBook()">
+                    <div class="form-group">
+                        <label for="bookSelect">Güncellenecek Kitabı Seçin:</label>
+                        <select id="bookSelect" ng-model="selectedBook" ng-options="book as book.title for book in books" ng-change="populateBookDetails(selectedBook)">
+                            <option value="">Bir kitap seçin...</option>
+                        </select>
+                    </div>
+                    <div ng-if="selectedBook">
+                        <div class="form-group">
+                            <label for="bookImage">Kitap Resmi:</label>
+                            <input type="text" class="form-control" id="bookImage" ng-model="selectedBook.image" />
+                        </div>
+                        <div class="form-group">
+                            <label for="bookTitle">Kitap Adı:</label>
+                            <input type="text" class="form-control" id="bookTitle" ng-model="selectedBook.title" />
+                        </div>
+                        <div class="form-group">
+                            <label for="bookAuthor">Yazar:</label>
+                            <input type="text" class="form-control" id="bookAuthor" ng-model="selectedBook.author" />
+                        </div>
+                        <div class="form-group">
+                            <label for="bookYear">Yayım Yılı:</label>
+                            <input type="number" class="form-control" id="bookYear" ng-model="selectedBook.year" />
+                        </div>
+                        <div class="form-group">
+                            <label for="bookGenre">Tür:</label>
+                            <input type="text" class="form-control" id="bookGenre" ng-model="selectedBook.genre" />
+                        </div>
+                        <div class="form-group">
+                            <label for="bookSummary">Özet:</label>
+                            <textarea class="form-control" id="bookSummary" ng-model="selectedBook.summary"></textarea>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary" ng-disabled="!selectedBook">Güncelle</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+            </main>
+        </div>
+    </div>
+</body>
+</html>

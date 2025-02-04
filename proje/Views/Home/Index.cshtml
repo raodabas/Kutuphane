@@ -1,0 +1,69 @@
+﻿<!DOCTYPE html>
+<html ng-app="loginApp">
+<head>
+    <meta charset="UTF-8">
+    <title>Giriş ve Kayıt</title>
+    <link rel="stylesheet" href="/css/site.css" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script src="/js/page.js"></script>
+    <style>
+        .popup {
+            display: block;
+            width: 300px;
+            margin: 100px auto;
+            padding: 20px;
+            background-color: #f2f2f2;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .popup input, .popup button {
+            display: block;
+            width: calc(100% - 22px);
+            margin: 10px auto;
+            padding: 10px;
+            font-size: 16px;
+        }
+        .popup button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .popup button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body ng-controller="LoginController" class="bg-light">
+    <div class="container text-center mt-5">
+        <h1 class="mb-4">Kütüphane Uygulaması</h1>
+        <button class="btn btn-primary mr-2" ng-click="openPopup('student')">Öğrenci Girişi</button>
+        <button class="btn btn-secondary" ng-click="openPopup('teacher')">Öğretmen Girişi</button>
+    </div>
+
+    <!-- Giriş Pop-Up -->
+    <div ng-show="showLogin" class="popup">
+        <h2 class="text-center">{{ userType }} Login</h2>
+        <input type="email" ng-model="email" class="form-control" placeholder="Email" />
+        <input type="password" ng-model="password" class="form-control" placeholder="Şifre" />
+        <button class="btn btn-primary" ng-click="login()">Giriş Yap</button>
+        <button class="btn btn-link" ng-click="openRegister()">Kayıt Ol</button>
+    </div>
+
+    <!-- Kayıt Pop-Up -->
+    <div ng-show="showRegister" class="popup">
+        <h2 class="text-center">{{ userType }} Register</h2>
+        <input type="text" ng-model="firstName" class="form-control" placeholder="Ad" />
+        <input type="text" ng-model="lastName" class="form-control" placeholder="Soyad" />
+        <input type="email" ng-model="email" class="form-control" placeholder="Email" />
+        <input type="password" ng-model="password" class="form-control" placeholder="Şifre" />
+        <button class="btn btn-success" ng-click="register()">Kayıt Ol</button>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
